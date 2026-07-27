@@ -1,6 +1,13 @@
 using System.Text;
+using BillingService.Application.DTOs;
+using BillingService.Application.Interfaces;
+using BillingService.Application.Mapping;
+using BillingService.Application.Services;
+using BillingService.Application.Validators;
 using BillingService.Infrastructure.Identity;
 using BillingService.Infrastructure.Persistence;
+using BillingService.Infrastructure.Repositories;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +73,28 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// ---- AutoMapper ----
+// No license key needed for individual/small-project use - AutoMapper only
+// logs a message about it, nothing is disabled. Silence that log line since
+// it's just noise for this project size (see the license-config docs if you
+// ever need a real key: https://docs.automapper.io/en/latest/License-configuration.html)
+builder.Logging.AddFilter("LuckyPennySoftware.AutoMapper.License", LogLevel.None);
+builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
+
+// ---- Validation ----
+builder.Services.AddScoped<IValidator<CreateOrderRequest>, CreateOrderRequestValidator>();
+builder.Services.AddScoped<IValidator<RecordPaymentRequest>, RecordPaymentRequestValidator>();
+
+// ---- Repositories ----
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// ---- Application services ----
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 // ---- API plumbing ----
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -95,7 +124,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Simple liveness check until the real controllers land in phase 2.
+// Simple liveness check until the real controllers land in phase 3.
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "billing-service-api" }));
 
 app.Run();
