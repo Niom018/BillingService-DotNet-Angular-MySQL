@@ -1,0 +1,21 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+## Logs
+logs/
+*.log
+
+## Local secrets (like .env) - never commit real connection strings/keys
+appsettings.Development.json
+
+## Rider / VS
+.idea/
+*.DotSettings.user
+
+## OS
+.DS_Store
+Thumbs.db

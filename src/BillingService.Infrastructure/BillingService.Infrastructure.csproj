@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>BillingService.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    NOTE (July 2026): Pomelo's official EF Core 10 support is still in progress
+    (see PomeloFoundation/Pomelo.EntityFrameworkCore.MySql issue #2007), so we
+    pin the whole EF Core stack to the stable 9.0.x line, which runs fine on a
+    net10.0 app. When Pomelo ships a stable EF Core 10 release, bump all three
+    packages below together. Run `dotnet restore` after cloning - exact patch
+    versions here may need a `dotnet add package <name>` refresh.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BillingService.Domain\BillingService.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
