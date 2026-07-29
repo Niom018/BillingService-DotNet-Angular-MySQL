@@ -12,6 +12,12 @@ public class CustomerRepository : ICustomerRepository
 
     public Task<Customer?> GetByIdAsync(int id, CancellationToken ct = default) =>
         _db.Customers.FirstOrDefaultAsync(c => c.Id == id, ct);
+
+    public async Task<IReadOnlyList<Customer>> GetAllAsync(CancellationToken ct = default) =>
+        await _db.Customers.OrderBy(c => c.Name).ToListAsync(ct);
+
+    public async Task AddAsync(Customer customer, CancellationToken ct = default) =>
+        await _db.Customers.AddAsync(customer, ct);
 }
 
 public class ProductRepository : IProductRepository
@@ -24,6 +30,12 @@ public class ProductRepository : IProductRepository
 
     public async Task<IReadOnlyList<Product>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default) =>
         await _db.Products.Where(p => ids.Contains(p.Id)).ToListAsync(ct);
+
+    public async Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken ct = default) =>
+        await _db.Products.OrderBy(p => p.Name).ToListAsync(ct);
+
+    public async Task AddAsync(Product product, CancellationToken ct = default) =>
+        await _db.Products.AddAsync(product, ct);
 }
 
 public class OrderRepository : IOrderRepository

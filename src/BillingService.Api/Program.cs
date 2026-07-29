@@ -1,4 +1,7 @@
 using System.Text;
+using BillingService.Api.Extensions;
+using BillingService.Api.Middleware;
+using BillingService.Api.Services;
 using BillingService.Application.DTOs;
 using BillingService.Application.Interfaces;
 using BillingService.Application.Mapping;
@@ -12,10 +15,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine("[STARTUP] Process alive, builder created.");
 
 // ---- Serilog ----
 builder.Host.UseSerilog((context, config) =>
@@ -74,16 +79,19 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // ---- AutoMapper ----
-// No license key needed for individual/small-project use - AutoMapper only
-// logs a message about it, nothing is disabled. Silence that log line since
-// it's just noise for this project size (see the license-config docs if you
-// ever need a real key: https://docs.automapper.io/en/latest/License-configuration.html)
 builder.Logging.AddFilter("LuckyPennySoftware.AutoMapper.License", LogLevel.None);
 builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
 
 // ---- Validation ----
 builder.Services.AddScoped<IValidator<CreateOrderRequest>, CreateOrderRequestValidator>();
 builder.Services.AddScoped<IValidator<RecordPaymentRequest>, RecordPaymentRequestValidator>();
+builder.Services.AddScoped<IValidator<RegisterRequest>, RegisterRequestValidator>();
+builder.Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateCustomerRequest>, CreateCustomerRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateProductRequest>, CreateProductRequestValidator>();
+
+// ---- JWT token issuing ----
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // ---- Repositories ----
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -98,18 +106,43 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 // ---- API plumbing ----
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Billing Service API", Version = "v1" });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Paste just the raw token here (no 'Bearer ' prefix needed) - Swagger adds it for you."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 builder.Services.AddCors(options =>
 {
-    // Tighten this to your actual Angular dev/prod origins before shipping.
     options.AddPolicy("AngularClient", policy =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
 
+Console.WriteLine("[STARTUP] Services registered, building app...");
 var app = builder.Build();
+Console.WriteLine("[STARTUP] App built, configuring pipeline...");
 
 if (app.Environment.IsDevelopment())
 {
@@ -118,13 +151,21 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("AngularClient");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Simple liveness check until the real controllers land in phase 3.
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "billing-service-api" }));
 
-app.Run();
+Console.WriteLine("[STARTUP] Starting Kestrel...");
+await app.StartAsync();
+Console.WriteLine("[STARTUP] Kestrel is up - Swagger should already be reachable now.");
+Console.WriteLine("[STARTUP] Seeding database (this is the step that talks to MySQL)...");
+
+await DataSeeder.SeedAsync(app);
+
+Console.WriteLine("[STARTUP] Seeding complete. App is fully ready.");
+await app.WaitForShutdownAsync();

@@ -5,12 +5,16 @@ namespace BillingService.Application.Interfaces;
 public interface ICustomerRepository
 {
     Task<Customer?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<IReadOnlyList<Customer>> GetAllAsync(CancellationToken ct = default);
+    Task AddAsync(Customer customer, CancellationToken ct = default);
 }
 
 public interface IProductRepository
 {
     Task<Product?> GetByIdAsync(int id, CancellationToken ct = default);
     Task<IReadOnlyList<Product>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken ct = default);
+    Task<IReadOnlyList<Product>> GetAllAsync(CancellationToken ct = default);
+    Task AddAsync(Product product, CancellationToken ct = default);
 }
 
 public interface IOrderRepository

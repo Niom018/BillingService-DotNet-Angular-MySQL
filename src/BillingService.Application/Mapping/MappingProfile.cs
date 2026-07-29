@@ -8,6 +8,9 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        CreateMap<Customer, CustomerResponse>();
+        CreateMap<Product, ProductResponse>();
+
         CreateMap<OrderItem, OrderItemResponse>()
             .ForCtorParam(nameof(OrderItemResponse.ProductName),
                 opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : string.Empty));

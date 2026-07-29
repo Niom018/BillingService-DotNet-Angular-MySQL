@@ -5,6 +5,10 @@
   "Jwt": {
     "Key": "REPLACE_WITH_A_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS"
   },
+  "SeedAdmin": {
+    "Email": "admin@billingservice.local",
+    "Password": "Admin@12345"
+  },
   "Serilog": {
     "MinimumLevel": {
       "Default": "Debug"
