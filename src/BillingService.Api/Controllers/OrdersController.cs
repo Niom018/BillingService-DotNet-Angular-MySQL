@@ -12,8 +12,13 @@ namespace BillingService.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IInvoiceService _invoiceService;
 
-    public OrdersController(IOrderService orderService) => _orderService = orderService;
+    public OrdersController(IOrderService orderService, IInvoiceService invoiceService)
+    {
+        _orderService = orderService;
+        _invoiceService = invoiceService;
+    }
 
     [HttpPost]
     [Authorize(Roles = $"{Roles.Admin},{Roles.Manager},{Roles.Cashier}")]
@@ -38,5 +43,14 @@ public class OrdersController : ControllerBase
     {
         var order = await _orderService.ConfirmOrderAsync(id, ct);
         return Ok(order);
+    }
+
+    // Only works once a payment has been recorded - generates the Invoice
+    // record on first call, then just re-renders the PDF on repeat calls.
+    [HttpGet("{id:int}/invoice")]
+    public async Task<IActionResult> GetInvoice(int id, CancellationToken ct)
+    {
+        var (pdfBytes, fileName) = await _invoiceService.GetInvoicePdfAsync(id, ct);
+        return File(pdfBytes, "application/pdf", fileName);
     }
 }

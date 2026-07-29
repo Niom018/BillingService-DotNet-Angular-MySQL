@@ -79,6 +79,10 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // ---- AutoMapper ----
+// No license key needed for individual/small-project use - AutoMapper only
+// logs a message about it, nothing is disabled. Silence that log line since
+// it's just noise for this project size (see the license-config docs if you
+// ever need a real key: https://docs.automapper.io/en/latest/License-configuration.html)
 builder.Logging.AddFilter("LuckyPennySoftware.AutoMapper.License", LogLevel.None);
 builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
 
@@ -102,6 +106,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // ---- Application services ----
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IInvoicePdfGenerator, InvoicePdfGenerator>();
 
 // ---- API plumbing ----
 builder.Services.AddControllers();
@@ -113,11 +119,11 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Paste just the raw token here (no 'Bearer ' prefix needed) - Swagger adds it for you."
+        Description = "Paste just the raw token here - Swagger adds the 'Bearer ' prefix for you."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -134,6 +140,7 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddCors(options =>
 {
+    // Tighten this to your actual Angular dev/prod origins before shipping.
     options.AddPolicy("AngularClient", policy =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
