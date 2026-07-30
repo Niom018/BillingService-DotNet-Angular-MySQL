@@ -13,3 +13,8 @@ public interface IPaymentService
 {
     Task<OrderResponse> RecordPaymentAsync(int orderId, RecordPaymentRequest request, CancellationToken ct = default);
 }
+
+public interface IInvoiceService
+{
+    Task<(byte[] PdfBytes, string FileName)> GetInvoicePdfAsync(int orderId, CancellationToken ct = default);
+}
