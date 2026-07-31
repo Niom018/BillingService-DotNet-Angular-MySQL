@@ -1,0 +1,72 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Products</h1>
+    @if (auth.hasRole('Admin', 'Manager')) {
+      <button (click)="showForm.set(!showForm())">
+        {{ showForm() ? 'Cancel' : '+ Add product' }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (showForm()) {
+    <form class="card" style="margin-bottom: 20px;" (ngSubmit)="submit()">
+      <h3>New product</h3>
+      <div class="form-grid">
+        <div>
+          <label for="sku">SKU</label>
+          <input id="sku" name="sku" [(ngModel)]="form.sku" required />
+        </div>
+        <div>
+          <label for="name">Name</label>
+          <input id="name" name="name" [(ngModel)]="form.name" required />
+        </div>
+      </div>
+      <label for="description">Description</label>
+      <input id="description" name="description" [(ngModel)]="form.description" />
+      <div class="form-grid">
+        <div>
+          <label for="unitPrice">Unit price</label>
+          <input id="unitPrice" name="unitPrice" type="number" min="0.01" step="0.01" [(ngModel)]="form.unitPrice" required />
+        </div>
+        <div>
+          <label for="stockQuantity">Stock quantity</label>
+          <input id="stockQuantity" name="stockQuantity" type="number" min="0" [(ngModel)]="form.stockQuantity" required />
+        </div>
+      </div>
+      <button type="submit" style="margin-top: 18px;">Save product</button>
+    </form>
+  }
+
+  @if (loading()) {
+    <p class="empty-state">Loading products...</p>
+  } @else if (products().length === 0) {
+    <p class="empty-state">No products yet. Add one to start creating orders.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th class="numeric">Unit price</th>
+          <th class="numeric">Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of products(); track p.id) {
+          <tr>
+            <td>{{ p.sku }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.description }}</td>
+            <td class="numeric">{{ p.unitPrice | number:'1.2-2' }}</td>
+            <td class="numeric">{{ p.stockQuantity }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

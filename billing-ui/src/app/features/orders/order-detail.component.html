@@ -1,0 +1,119 @@
+<div class="page">
+  @if (loading()) {
+    <p class="empty-state">Loading order...</p>
+  } @else {
+    @if (error() && !order()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    @if (order(); as o) {
+      <div class="page-header">
+        <div>
+          <h1>{{ o.orderNumber }}</h1>
+          <span [class]="badgeClass(o.status)">{{ o.status }}</span>
+        </div>
+        @if (o.paymentMethod) {
+          <button (click)="downloadInvoice()">Download invoice</button>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <div class="card" style="margin-bottom: 20px;">
+        <h3>{{ o.customerName }}</h3>
+        <p style="color: var(--color-text-muted); font-size: 13px;">Ordered {{ o.orderDate | date:'medium' }}</p>
+
+        <table style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th class="numeric">Qty</th>
+              <th class="numeric">Unit price</th>
+              <th class="numeric">Line total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of o.items; track item.productId) {
+              <tr>
+                <td>{{ item.productName }}</td>
+                <td class="numeric">{{ item.quantity }}</td>
+                <td class="numeric">{{ item.unitPrice | number:'1.2-2' }}</td>
+                <td class="numeric">{{ item.lineTotal | number:'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+          <div style="min-width: 220px;">
+            <div style="display: flex; justify-content: space-between;"><span>Subtotal</span><span>{{ o.subtotal | number:'1.2-2' }}</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>Discount</span><span>{{ o.discountAmount | number:'1.2-2' }}</span></div>
+            <div style="display: flex; justify-content: space-between;"><span>Tax</span><span>{{ o.taxAmount | number:'1.2-2' }}</span></div>
+            <div style="display: flex; justify-content: space-between; font-weight: 700; margin-top: 6px; border-top: 1px solid var(--color-border); padding-top: 6px;">
+              <span>Total</span><span>{{ o.totalAmount | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (o.status === 'Pending') {
+        <div class="card">
+          <h3>Confirm this order</h3>
+          <p style="color: var(--color-text-muted); font-size: 13px;">Locks the items so a payment can be recorded.</p>
+          <button [disabled]="actionBusy()" (click)="confirm()">
+            {{ actionBusy() ? 'Confirming...' : 'Confirm order' }}
+          </button>
+        </div>
+      }
+
+      @if (o.status === 'Confirmed' && !o.paymentMethod) {
+        <div class="card">
+          <h3>Record payment</h3>
+          <div class="form-grid">
+            <div>
+              <label for="method">Payment method</label>
+              <select id="method" [(ngModel)]="paymentMethod">
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="Mfs">Mobile Financial Service</option>
+              </select>
+            </div>
+            <div>
+              <label for="amountPaid">Amount paid</label>
+              <input id="amountPaid" type="number" min="0.01" step="0.01" [(ngModel)]="amountPaid" />
+            </div>
+          </div>
+
+          @if (paymentMethod === 'Mfs') {
+            <label for="mfsProvider">MFS provider</label>
+            <select id="mfsProvider" [(ngModel)]="mfsProvider">
+              <option value="Bkash">bKash</option>
+              <option value="Nagad">Nagad</option>
+              <option value="Rocket">Rocket</option>
+              <option value="Upay">Upay</option>
+            </select>
+          }
+
+          @if (paymentMethod !== 'Cash') {
+            <label for="transactionReference">Transaction reference</label>
+            <input id="transactionReference" [(ngModel)]="transactionReference" placeholder="e.g. BKS998877" />
+          }
+
+          <button style="margin-top: 18px;" [disabled]="actionBusy()" (click)="recordPayment()">
+            {{ actionBusy() ? 'Recording...' : 'Record payment' }}
+          </button>
+        </div>
+      }
+
+      @if (o.paymentMethod) {
+        <div class="card">
+          <h3>Payment</h3>
+          <p>Method: <strong>{{ o.paymentMethod }}</strong></p>
+          <p>Status: <strong>{{ o.paymentStatus }}</strong></p>
+        </div>
+      }
+    }
+  }
+</div>

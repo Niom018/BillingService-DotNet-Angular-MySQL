@@ -1,0 +1,20 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Orders</h1>
+    <a routerLink="/orders/new"><button>+ New order</button></a>
+  </div>
+
+  <div class="card">
+    <h3>Look up an order</h3>
+    <p style="color: var(--color-text-muted); font-size: 13px;">
+      Enter the order ID to view its status, items, and payment details.
+    </p>
+    <div style="display: flex; gap: 10px; align-items: flex-end; max-width: 320px;">
+      <div style="flex: 1;">
+        <label for="orderId">Order ID</label>
+        <input id="orderId" type="number" min="1" [(ngModel)]="orderId" (keyup.enter)="goToOrder()" />
+      </div>
+      <button (click)="goToOrder()">View</button>
+    </div>
+  </div>
+</div>

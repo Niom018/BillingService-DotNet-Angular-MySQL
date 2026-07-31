@@ -1,0 +1,18 @@
+<div class="app-shell">
+  @if (auth.isAuthenticated()) {
+    <nav class="topnav">
+      <div class="brand">Billing Service</div>
+      <div class="nav-links">
+        <a routerLink="/products" routerLinkActive="active">Products</a>
+        <a routerLink="/customers" routerLinkActive="active">Customers</a>
+        <a routerLink="/orders" routerLinkActive="active">Orders</a>
+      </div>
+      <div class="nav-user">
+        <span>{{ auth.currentUser()?.fullName }}</span>
+        <span class="role-pill">{{ auth.roles().join(', ') }}</span>
+        <button class="secondary" (click)="logout()">Log out</button>
+      </div>
+    </nav>
+  }
+  <router-outlet></router-outlet>
+</div>

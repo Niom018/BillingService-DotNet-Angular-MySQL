@@ -17,7 +17,9 @@ public class InvoicePdfGenerator : IInvoicePdfGenerator
             {
                 page.Size(PageSizes.A4);
                 page.Margin(40);
-                page.DefaultTextStyle(x => x.FontSize(10));
+                page.DefaultTextStyle(x =>
+    x.FontFamily(Fonts.Calibri)
+     .FontSize(10));
 
                 page.Header().Element(c => ComposeHeader(c, order, invoice));
                 page.Content().Element(c => ComposeContent(c, order));
@@ -36,7 +38,7 @@ public class InvoicePdfGenerator : IInvoicePdfGenerator
     {
         container.Row(row =>
         {
-            row.RelativeItem().Column(col =>
+            row.RelativeItem(2).Column(col =>
             {
                 col.Item().Text("INVOICE").FontSize(22).Bold();
                 col.Item().PaddingTop(5).Text($"Invoice #: {invoice.InvoiceNumber}");
@@ -44,7 +46,7 @@ public class InvoicePdfGenerator : IInvoicePdfGenerator
                 col.Item().Text($"Date: {invoice.IssueDate:yyyy-MM-dd}");
             });
 
-            row.ConstantItem(180).Column(col =>
+            row.RelativeItem(1).Column(col =>
             {
                 col.Item().AlignRight().Text("Billing Service").Bold();
                 col.Item().AlignRight().Text("Dhaka, Bangladesh").FontSize(9).FontColor(Colors.Grey.Darken1);
@@ -119,27 +121,29 @@ public class InvoicePdfGenerator : IInvoicePdfGenerator
 
     private static void ComposeTotals(IContainer container, Order order)
     {
-        container.AlignRight().Column(col =>
+        container.Row(row =>
         {
-            col.Item().Row(row =>
+            row.RelativeItem(3); // empty spacer, pushes the totals block to the right
+
+            row.RelativeItem(2).Table(table =>
             {
-                row.ConstantItem(100).Text("Subtotal:");
-                row.ConstantItem(100).AlignRight().Text(order.Subtotal.ToString("N2"));
-            });
-            col.Item().Row(row =>
-            {
-                row.ConstantItem(100).Text("Discount:");
-                row.ConstantItem(100).AlignRight().Text(order.DiscountAmount.ToString("N2"));
-            });
-            col.Item().Row(row =>
-            {
-                row.ConstantItem(100).Text("Tax:");
-                row.ConstantItem(100).AlignRight().Text(order.TaxAmount.ToString("N2"));
-            });
-            col.Item().PaddingTop(3).Row(row =>
-            {
-                row.ConstantItem(100).Text("Total:").Bold();
-                row.ConstantItem(100).AlignRight().Text(order.TotalAmount.ToString("N2")).Bold();
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn(1);
+                    columns.RelativeColumn(1);
+                });
+
+                table.Cell().Text("Subtotal:");
+                table.Cell().AlignRight().Text(order.Subtotal.ToString("N2"));
+
+                table.Cell().Text("Discount:");
+                table.Cell().AlignRight().Text(order.DiscountAmount.ToString("N2"));
+
+                table.Cell().Text("Tax:");
+                table.Cell().AlignRight().Text(order.TaxAmount.ToString("N2"));
+
+                table.Cell().PaddingTop(3).Text("Total:").Bold();
+                table.Cell().PaddingTop(3).AlignRight().Text(order.TotalAmount.ToString("N2")).Bold();
             });
         });
     }

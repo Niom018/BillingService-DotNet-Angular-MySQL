@@ -1,0 +1,49 @@
+<div class="page">
+  <h1>New order</h1>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <div class="card">
+    <label for="customer">Customer</label>
+    <select id="customer" [(ngModel)]="customerId">
+      <option [ngValue]="null">Select a customer...</option>
+      @for (c of customers(); track c.id) {
+        <option [ngValue]="c.id">{{ c.name }} - {{ c.phone }}</option>
+      }
+    </select>
+
+    <h3 style="margin-top: 24px;">Items</h3>
+    @for (item of items; track $index) {
+      <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
+        <div style="flex: 3;">
+          <label>Product</label>
+          <select [(ngModel)]="item.productId" [name]="'product' + $index">
+            <option [ngValue]="0">Select a product...</option>
+            @for (p of products(); track p.id) {
+              <option [ngValue]="p.id">{{ p.name }} ({{ p.unitPrice | number:'1.2-2' }})</option>
+            }
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label>Qty</label>
+          <input type="number" min="1" [(ngModel)]="item.quantity" [name]="'qty' + $index" />
+        </div>
+        @if (items.length > 1) {
+          <button type="button" class="secondary" (click)="removeItem($index)">Remove</button>
+        }
+      </div>
+    }
+
+    <button type="button" class="secondary" (click)="addItem()">+ Add another item</button>
+
+    <p style="margin-top: 20px; font-weight: 700;">
+      Estimated total: {{ estimatedTotal | number:'1.2-2' }}
+    </p>
+
+    <button type="button" [disabled]="submitting()" (click)="submit()">
+      {{ submitting() ? 'Creating...' : 'Create order' }}
+    </button>
+  </div>
+</div>
