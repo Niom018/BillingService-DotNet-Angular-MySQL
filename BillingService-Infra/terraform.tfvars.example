@@ -1,0 +1,6 @@
+# Copy this to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored - never commit real secrets in it.
+
+key_pair_name        = "billing-service-key"
+mysql_root_password  = "CHANGE_ME_TO_A_REAL_PASSWORD"
+# allowed_ssh_cidr    = "YOUR_IP/32"   # uncomment and restrict once you know your IP
